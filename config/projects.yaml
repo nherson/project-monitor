@@ -1,0 +1,7 @@
+projects:
+  - title: "Caltime Command Line Tool"
+    group: 1
+    github: "nherson/caltime"
+  - title: "Certainly CA Tool"
+    group: 2
+    github: "nherson/certainly"

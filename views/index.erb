@@ -28,11 +28,11 @@
       </div>
 
       <div class="col-md-12">
-        <table class="table">
+        <table id="project_table" class="table">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Project Name</th>
+              <th style="cursor: pointer" data-sort="int">#</th>
+              <th style="cursor: pointer" data-sort="string">Project Name</th>
               <th>TravisCI</th>
               <th>Code Climate</th>
               <th>GitHub Repo</th>
@@ -40,33 +40,98 @@
           </thead>
           <tbody>
             <% @projects.each do |project| %>
-              <tr>
-                <td><%= project["group"] %></td>
-                <td><%= project["title"] %></td>
+              <tr data-toggle="collapse" data-target="#group<%= project.group_number %>" class="accordian-toggle">
+                <td><%= project.group_number %></td>
+                <td><%= project.title %></td>
                 <td>
-                  <a href="https://travis-ci.org/travis-ci/travis-web"><img src="https://travis-ci.org/<%= project["github"] %>.svg?branch=master" alt="TravisCI" /></a>
+                  <a href="https://travis-ci.org/travis-ci/travis-web"><img src="https://travis-ci.org/<%= project.github_shortname %>.svg?branch=master" alt="TravisCI" /></a>
                 </td>
                 <td>
-                  <a href="https://codeclimate.com/github/<%= project["github"] %>">
-                    <img class="codeclimate-badge" src="https://codeclimate.com/github/<%= project["github"] %>/badges/gpa.svg" alt="CodeClimate" onerror="hideBrokenCodeClimate(this);" />
+                  <a href="https://codeclimate.com/github/<%= project.github_shortname %>">
+                    <img class="codeclimate-badge" src="https://codeclimate.com/github/<%= project.github_shortname %>/badges/gpa.svg" alt="CodeClimate" onerror="hideBrokenCodeClimate(this);" />
                   </a>
                 </td>
-                <td><a href="https://github.com/<%= project["github"] %>">GitHub</a></td>
+                <td><a href="https://github.com/<%= project.github_shortname %>">GitHub</a></td>
+              </tr>
+              <tr>
+                <td colspan="12" class="hiddenRow">
+                  <div class="accordian-body collapse" id="group<%= project.group_number %>">HIDDEN!</div>
+                </td>
               </tr>
             <% end %>
           </tbody>
         </table>
+      </div>
+      <div class="col-md-6 panel panel-default">
+        <form id="new_project_form" action="projects/create" method="POST">
+          <h3>Add a Project</h3>
+          <div class="form-group">
+            <label for="new_project_group_number">Group #</label>
+            <input type="number" class="form-control" id="new_project_group_number" name="group_number" placeholder="Group #">
+          </div>
+          <div class="form-group">
+            <label for="new_project_title">Project Name</label>
+            <input type="text" class="form-control" id="new_project_title" name="title" placeholder="Project Name">
+          </div>
+          <div class="form-group">
+            <label for="new_project_github_shortname">Github Shortname</label>
+            <input type="text" class="form-control" id="new_project_github_shortname" name="github_shortname" placeholder="e.g. nherson/caltime">
+          </div>
+          <input type="submit" name="submit" class="btn btn-default" id="new_project_button" value="Create" />
+          <p></p>
+        </form>
       </div>
     </div> <!-- /container -->
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="js/stupidtable.min.js"></script>
     <!-- jQuery shenanigans on the page -->
     <script>
+      // Make the table sortable
+      $("#project_table").stupidtable();
+      // Triggered when CodeClimate badge is not available
       function hideBrokenCodeClimate(img) {
         td = $(img).parent().parent();
         td.html("<span class='glyphicon glyphicon-remove' style='color:red'></span>CodeClimate not configured");
+      };
+      // Triggered when submitting a new project
+      $("#new_project_form").submit(function(event) {
+        event.preventDefault();
+        form = $("#new_project_form");
+        formData = form.serialize();
+        // validate form client-side here
+        $.ajax({
+          type: $(form).attr('method'),
+          url: $(form).attr('action'),
+          data: formData
+        }).success(function(xhr, status, error) { createProjectSuccess(xhr, status, error) })
+          .error(function(xhr, status, error) { createProjectError(xhr, status, error) });
+      });
+
+      // Triggered when success back from AJAX to /projects/create
+      // adds row to table
+      function createProjectSuccess(project, status, error) {
+        table = $("#project_table");
+        $('#project_table tbody').append(
+        '<tr>'+
+          '<td>' + project.group_number + '</td>' +
+          '<td>' + project.title + '</td>' +
+          '<td><a href="https://travis-ci.org/'+project.github_shortname+'"><img src="https://travis-ci.org/'+project.github_shortname+'.svg?branch=master" alt="TravisCI" /></a></td>'+ 
+          '<td><a href="https://codeclimate.com/github/'+project.github_shortname+'">'+
+              '<img class="codeclimate-badge" src="https://codeclimate.com/github/'+project.github_shortname+'/badges/gpa.svg" alt="CodeClimate" onerror="hideBrokenCodeClimate(this);" /></a>'+
+          '</td>'+
+          '<td><a href="https://github.com/'+project.github_shortname+'">GitHub</a></td>'+
+        '</tr>');
+        $(form)[0].reset();
+      };
+
+      // Triggered when error back from AJAX to /projects/create
+      function createProjectError(xhr, status, error) {
+        var errors = $.parseJSON(xhr.responseText);
+        debugger
+        console.log(xhr.responseText);
       };
     </script>
   </body>

@@ -3,7 +3,7 @@ require 'sinatra/activerecord'
 require './lib/project.rb'
 require 'json'
 ## For debugging
-require 'byebug'
+#require 'byebug'
 
 class ProjectMonitor < Sinatra::Base
 

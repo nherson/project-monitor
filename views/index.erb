@@ -27,41 +27,24 @@
         <p class="lead">The following table holds up-to-date information about the projects you care about</p>
       </div>
 
-      <div class="col-md-12">
-        <table id="project_table" class="table">
-          <thead>
-            <tr>
-              <th style="cursor: pointer" data-sort="int">#</th>
-              <th style="cursor: pointer" data-sort="string">Project Name</th>
-              <th>TravisCI</th>
-              <th>Code Climate</th>
-              <th>GitHub Repo</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @projects.each do |project| %>
-              <tr data-toggle="collapse" data-target="#group<%= project.group_number %>" class="accordian-toggle">
-                <td><%= project.group_number %></td>
-                <td><%= project.title %></td>
-                <td>
-                  <a href="https://travis-ci.org/travis-ci/travis-web"><img src="https://travis-ci.org/<%= project.github_shortname %>.svg?branch=master" alt="TravisCI" /></a>
-                </td>
-                <td>
-                  <a href="https://codeclimate.com/github/<%= project.github_shortname %>">
-                    <img class="codeclimate-badge" src="https://codeclimate.com/github/<%= project.github_shortname %>/badges/gpa.svg" alt="CodeClimate" onerror="hideBrokenCodeClimate(this);" />
-                  </a>
-                </td>
-                <td><a href="https://github.com/<%= project.github_shortname %>">GitHub</a></td>
-              </tr>
-              <tr>
-                <td colspan="12" class="hiddenRow">
-                  <div class="accordian-body collapse" id="group<%= project.group_number %>">HIDDEN!</div>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
+      <div class="panel-group col-xs-12" id="accordion" role="tablist">
+        <% @projects.each do |project| %>
+          <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="group_heading_<%= project.group_number %>">
+              <h4 class="panel-title">
+                <a class="collapsed" data-toggle="collapse" href="#group_body_<%= project.group_number %>">
+                  <%= project.group_number %> - <%= project.title %>
+                </a>
+              </h4>
+            </div>
+            <div id="group_body_<%= project.group_number %>" class="panel-collapse collapse" role="tabpanel" group="<%= project.group_number %>">
+              <div class="panel-body">
+              </div>
+            </div>
+          </div>
+        <% end %>
       </div>
+
       <div class="col-md-6 panel panel-default">
         <form id="new_project_form" action="projects/create" method="POST">
           <h3>Add a Project</h3>
@@ -81,6 +64,7 @@
           <p></p>
         </form>
       </div>
+
     </div> <!-- /container -->
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
@@ -89,12 +73,10 @@
     <script src="js/stupidtable.min.js"></script>
     <!-- jQuery shenanigans on the page -->
     <script>
-      // Make the table sortable
-      $("#project_table").stupidtable();
       // Triggered when CodeClimate badge is not available
       function hideBrokenCodeClimate(img) {
         td = $(img).parent().parent();
-        td.html("<span class='glyphicon glyphicon-remove' style='color:red'></span>CodeClimate not configured");
+        td.html("<span class='glyphicon glyphicon-remove' style='color:red'></span>Not configured");
       };
       // Triggered when submitting a new project
       $("#new_project_form").submit(function(event) {
@@ -130,9 +112,20 @@
       // Triggered when error back from AJAX to /projects/create
       function createProjectError(xhr, status, error) {
         var errors = $.parseJSON(xhr.responseText);
-        debugger
-        console.log(xhr.responseText);
       };
+
+      // When a panel is expanded, use AJAX to get the partial for that project
+      $('.collapse').on('show.bs.collapse', function() {
+        var groupId = '#group_body_' + $(this).attr('group');
+        $.ajax({
+          type: 'GET',
+          url: 'projects/' + $(this).attr('group'),
+        }).success(function(data) {
+          $(groupId).html(data);
+        }).error(function(data) {
+          $(groupId).html('<div class="panel-body">Error fetching project information</div>');
+        });
+      });
     </script>
   </body>
 </html>

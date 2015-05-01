@@ -1,0 +1,22 @@
+<div class="panel-body">
+  <div class="col-xs-3">
+    <table class="table">
+      <tbody>
+        <tr>
+          <td>TravisCI</td>
+          <td>
+            <a href="https://travis-ci.org/<%= @project.github_shortname %>"><img src="https://travis-ci.org/<%= @project.github_shortname %>.svg?branch=master" alt="TravisCI" /></a>
+          </td>
+        </tr>
+        <tr>
+          <td>CodeClimate</td>
+          <td>
+            <a href="https://codeclimate.com/github/<%= @project.github_shortname %>">
+              <img class="codeclimate-badge" src="https://codeclimate.com/github/<%= @project.github_shortname %>/badges/gpa.svg" alt="CodeClimate" onerror="hideBrokenCodeClimate(this);" />
+            </a>
+          </td>
+        </tr>
+      <tbody>
+    </table>
+  </div>
+</div>

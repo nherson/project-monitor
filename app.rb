@@ -26,6 +26,11 @@ class ProjectMonitor < Sinatra::Base
       project.errors.to_json
     end
   end
+
+  get '/projects/:group_number' do
+    @project = Project.find_by_group_number(params[:group_number])
+    erb :project
+  end
 end
 
 
